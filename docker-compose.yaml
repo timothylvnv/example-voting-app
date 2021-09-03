@@ -1,0 +1,49 @@
+version: "3.3"
+
+volumes:
+  db-data:
+
+networks:
+  instaworker:
+    driver: bridge
+
+services:
+  worker:
+    image: timothyaw/worker:latest
+    ports:
+      - 5000:80
+    depends_on:
+      - redis
+    networks:
+      - instaworker
+
+  redis:
+    image: redis:alpine
+    networks:
+      - instaworker
+
+  db:
+    image: postgres:9.4
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+    networks:
+      - instaworker
+    environment: 
+      - POSTGRES_HOST_AUTH_METHOD=trust
+
+  worker:
+    image: timothyawx/worker:latest
+    ports:
+      - 5001:4000
+    depends_on:
+      - db
+    networks:
+      - instaworker
+
+  worker:
+    image: timothyaw/worker:latest
+    depends_on:
+      - redis
+      - db
+    networks:
+      - instaworker
